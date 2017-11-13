@@ -82,7 +82,7 @@ function build_initramfs {
 		cd ..
         cp ../../init .
         chmod +x init
-		cp -av ../../tmp/busybox/_install/* .
+		cp -av ../../tmp/busybox/* .
 		find . -print0 | cpio --null -ov --format=newc > rootfs.cpio 
 		gzip ./rootfs.cpio
         cd ../..
