@@ -48,14 +48,14 @@ function build_linux {
 function configure_busybox {
         cd src/busybox
         make defconfig
-        echo "CONFIG_STATIC=y" >> ../../tmp/busybox/.config
+        sed -i "s/.*CONFIG_STATIC.*/CONFIG_STATIC=y/" .config
         cd -
 }
 
 function build_busybox {
         cd src/busybox
         make
-        make CONFIG_PREFIX=../../tmp/busybox install
+        make CONFIG_PREFIX=../../tmp/busybox/ install
         cd -
 }
 
@@ -67,7 +67,7 @@ function configure_qemu {
 
 function build_qemu {
         cd src/qemu
-        make -j8
+        make -j4
         make install
         cd -
 }
@@ -78,13 +78,14 @@ function build_initramfs {
         mkdir -pv {bin,dev,etc,home,mnt,proc,sys,usr}
         cd ./dev 
         sudo mknod sda b 8 0 
-	sudo mknod console c 5 1
+		sudo mknod console c 5 1
+		cd ..
         cp ../../init .
         chmod +x init
-	cp -av ../../tmp/busybox/* .
-	find . -print0 | cpio --null -ov --format=newc > rootfs.cpio 
-	gzip ./rootfs.cpio
-        cd -
+		cp -av ../../tmp/busybox/_install/* .
+		find . -print0 | cpio --null -ov --format=newc > rootfs.cpio 
+		gzip ./rootfs.cpio
+        cd ../..
 }
 
 
