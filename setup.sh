@@ -84,8 +84,27 @@ function build_initramfs {
         chmod +x init
 		cp -av ../../tmp/busybox/* .
 		find . -print0 | cpio --null -ov --format=newc > rootfs.cpio 
-		gzip ./rootfs.cpio
+		gzip ./rootfs.cpiorun
         cd ../..
+}
+
+function build_drive {
+		dd if=/dev/zero of=hdd bs=1M count=$((32))
+		mkfs.ext3 hdd
+		sudo mount ./hdd /mnt/
+		cd /mnt
+		sudo mkdir -pv {bin,dev,etc,home,mnt,proc,sys,usr}
+		cd -
+		cd tmp/busybox
+		path_to_busybox=$(pwd)
+		sudo cp -av $path_to_busybox/* /mnt 
+		cd ../..
+		sudo cp init /mnt
+		cd /mnt/dev
+        sudo mknod sda b 8 0 
+		sudo mknod console c 5 1	
+		cd -
+		sudo umount /mnt
 }
 
 
@@ -98,13 +117,29 @@ function make_all {
         build_busybox
         build_qemu
         build_initramfs
+        build_drive
 }
 
-function run_qemu {
+function run_qemu_initrd {
         tmp/qemu/bin/qemu-system-x86_64 \
         		-kernel tmp/linux/arch/x86/boot/bzImage \
                 -initrd tmp/initramfs/rootfs.cpio.gz \
                 -nographic -append "console=ttyS0"
+}
+
+function run_qemu_drive {
+		tmp/qemu/bin/qemu-system-x86_64 \
+				-drive format=raw,file=./hdd \
+				-kernel tmp/linux/arch/x86/boot/bzImage \
+				-append root=/dev/sda
+}
+
+function run_qemu {
+		case "$1" in
+		-initrd) run_qemu_initrd ;;
+		-hda) run_qemu_drive ;;
+		*) echo "Use flags: -initrd or -hda" ;;
+		esac
 }
 
 prepare_dirs
