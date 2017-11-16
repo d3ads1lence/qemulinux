@@ -13,5 +13,6 @@ This will automatically download needed packages (linux, busybox, qemu) and unpa
 After while you should have everyting build in $(pwd)/tmp directory
 To run your kernel with initial ramdisk type:
 > run_qemu -initrd
+
 If you want run kernel with hdd image type:
 > run_qemu -hda
