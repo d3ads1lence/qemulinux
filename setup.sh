@@ -3,10 +3,12 @@
 KERNEL_URL="https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.13.11.tar.xz"
 QEMU_URL="https://download.qemu.org/qemu-2.10.1.tar.xz"
 BUSYBOX_URL="https://busybox.net/downloads/busybox-1.27.2.tar.bz2"
+TASK1_URL="https://github.com/d3ads1lence/traineeship/archive/task1_static_v1.2.tar.gz"
 
 LINUX_PKG="linux-4.13.11.tar.xz"
 QEMU_PKG="qemu-2.10.1.tar.xz"
 BUSYBOX_PKG="busybox-1.27.2.tar.bz2"
+TASK1_PKG="task1_static_v1.2.tar.gz"
 
 function prepare_dirs {
 	mkdir -p srcdir
@@ -15,6 +17,7 @@ function prepare_dirs {
 	mkdir -p tmp/busybox
 	mkdir -p tmp/qemu
     mkdir -p tmp/initramfs
+    mkdir -p tmp/task1
 }
 
 function download_all {
@@ -22,15 +25,17 @@ function download_all {
 	if [ ! -f ${LINUX_PKG} ]; then wget ${KERNEL_URL}; fi
 	if [ ! -f ${QEMU_PKG} ]; then wget ${QEMU_URL}; fi
 	if [ ! -f ${BUSYBOX_PKG} ]; then wget ${BUSYBOX_URL}; fi
+	if [ ! -f ${TASK1_PKG} ]; then wget ${TASK1_URL}; fi
 	cd ..
 }
 
 function unpack_all {
-	cd src
-	if [ ! -d "linux" ]; then tar xvf ../srcdir/${LINUX_PKG} && mv linux-4.13.11 linux; fi
-    	if [ ! -d "busybox" ]; then tar xvf ../srcdir/${BUSYBOX_PKG} && mv busybox-1.27.2 busybox; fi
-    	if [ ! -d "qemu" ]; then tar xvf ../srcdir/${QEMU_PKG} && mv qemu-2.10.1 qemu; fi
-    	cd ..
+		cd src
+		if [ ! -d "linux" ]; then tar xvf ../srcdir/${LINUX_PKG} && mv linux-4.13.11 linux; fi
+		if [ ! -d "busybox" ]; then tar xvf ../srcdir/${BUSYBOX_PKG} && mv busybox-1.27.2 busybox; fi
+		if [ ! -d "qemu" ]; then tar xvf ../srcdir/${QEMU_PKG} && mv qemu-2.10.1 qemu; fi
+		if [ ! -d "task1" ]; then tar xvf ../srcdir/${TASK1_PKG} && cp -R traineeship-task1_static_v1.2/task1 . && rm -rf traineeship-task1_static_v1.2; fi
+		cd ..
 }
 
 function configure_linux {
@@ -72,6 +77,12 @@ function build_qemu {
         cd -
 }
 
+function build_task1 {
+		cd src/task1
+		make -j4
+		cd -
+}
+
 
 function build_initramfs {
         cd tmp/initramfs
@@ -83,8 +94,12 @@ function build_initramfs {
         cp ../../init .
         chmod +x init
 		cp -av ../../tmp/busybox/* .
+		cp ../../src/task1/hello bin/
+		/lib/x86_64-linux-gnu/libc.so.6
+		cp -R /lib64 .
+		mkdir lib && mkdir lib/x86_64-linux-gnu && cp /lib/x86_64-linux-gnu/libc.so.6 lib/x86_64-linux-gnu
 		find . -print0 | cpio --null -ov --format=newc > rootfs.cpio 
-		gzip ./rootfs.cpiorun
+		gzip ./rootfs.cpio
         cd ../..
 }
 
@@ -116,6 +131,7 @@ function make_all {
         build_linux
         build_busybox
         build_qemu
+        build_task1
         build_initramfs
         build_drive
 }
