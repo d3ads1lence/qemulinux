@@ -86,7 +86,7 @@ function build_task1 {
 
 function build_initramfs {
         cd tmp/initramfs
-        mkdir -pv {bin,dev,etc,home,mnt,proc,sys,usr}
+        mkdir -pv {bin,dev,etc,home,mnt,proc,sys,usr,lib}
         cd ./dev 
         sudo mknod sda b 8 0 
 		sudo mknod console c 5 1
@@ -95,9 +95,8 @@ function build_initramfs {
         chmod +x init
 		cp -av ../../tmp/busybox/* .
 		cp ../../src/task1/hello bin/
-		/lib/x86_64-linux-gnu/libc.so.6
 		cp -R /lib64 .
-		mkdir lib && mkdir lib/x86_64-linux-gnu && cp /lib/x86_64-linux-gnu/libc.so.6 lib/x86_64-linux-gnu
+		cp -R /lib/x86_64-linux-gnu ./lib
 		find . -print0 | cpio --null -ov --format=newc > rootfs.cpio 
 		gzip ./rootfs.cpio
         cd ../..
@@ -108,13 +107,16 @@ function build_drive {
 		mkfs.ext3 hdd
 		sudo mount ./hdd /mnt/
 		cd /mnt
-		sudo mkdir -pv {bin,dev,etc,home,mnt,proc,sys,usr}
+		sudo mkdir -pv {bin,dev,etc,home,mnt,proc,sys,usr,lib}
 		cd -
 		cd tmp/busybox
 		path_to_busybox=$(pwd)
 		sudo cp -av $path_to_busybox/* /mnt 
 		cd ../..
 		sudo cp init /mnt
+		sudo cp -R /lib64 /mnt
+		sudo cp -R /lib/x86_64-linux-gnu /mnt/lib
+		sudo cp src/task1/hello /mnt/bin
 		cd /mnt/dev
         sudo mknod sda b 8 0 
 		sudo mknod console c 5 1	
