@@ -1,6 +1,11 @@
 #!/bin/sh
+
 mount -t proc none /proc
 mount -t sysfs none /sys
-mknod -m 660 /dev/mem c 1 1
+mknod -m 666 /dev/ttyS0 c 4 64
+
 echo -e "\nBoot took $(cut -d' ' -f1 /proc/uptime) seconds\n"
+setsid  cttyhack sh
 exec /bin/sh
+
+/bin/server -D
