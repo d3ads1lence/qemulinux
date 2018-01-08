@@ -137,6 +137,9 @@ function build_drive {
 		sudo chmod +x /mnt/init
 		sudo cp server /mnt/etc/init.d
 		sudo chmod 775 /mnt/etc/init.d/server
+		echo -e '#!/bin/sh\n/etc/init.d/server start' > rcS	
+		sudo mv rcS /mnt/etc/init.d/rcS
+		sudo chmod +x /mnt/etc/init.d/rcS
 		sudo cp -R /lib64 /mnt
 		sudo cp -R /lib/x86_64-linux-gnu /mnt/lib
 		sudo cp src/task1/hello /mnt/bin
